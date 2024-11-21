@@ -6,17 +6,31 @@ def compute_probs(neg,pos):
   p1 = pos/(neg+pos)
   return [p0,p1]
 
-def cond_prob(table, evidence, evidence_value, target, target_value):
-  t_subset = up_table_subset(table, target, 'equals', target_value)
+def cond_prob(table, evidence, evidence_value, target,target_value):
+  t_subset = up_table_subset(flu_table_2, target, 'equals', target_value)
   e_list = up_get_column(t_subset, evidence)
   p_b_a = sum([1 if v==evidence_value else 0 for v in e_list])/len(e_list)
-  return p_b_a + .01  #Laplace smoothing factor
+  return p_b_a
+
+def cond_prob(full_table, the_evidence_column, the_evidence_column_value, the_target_column, the_target_column_value):
+  assert the_evidence_column in full_table
+  assert the_target_column in full_table
+  assert the_evidence_column_value in up_get_column(full_table, the_evidence_column)
+  assert the_target_column_value in up_get_column(full_table, the_target_column)
 
   #your function body below - copy and paste then align with parameter names
   t_subset = up_table_subset(full_table, the_target_column, 'equals', the_target_column_value)
   e_list = up_get_column(t_subset, the_evidence_column)
   p_b_a = sum([1 if v==the_evidence_column_value else 0 for v in e_list])/len(e_list)
   return p_b_a
+
+def prior_prob(full_table, the_column, the_column_value):
+  assert the_column in full_table
+  assert the_column_value in up_get_column(full_table, the_column)
+
+  t_list = up_get_column(full_table, the_column)
+  p_a = sum([1 if v==the_column_value else 0 for v in t_list])/len(t_list)
+  return p_a
 
 def cond_probs_product(full_table, evidence_row, target_column, target_column_value):
   assert target_column in full_table
@@ -26,18 +40,10 @@ def cond_probs_product(full_table, evidence_row, target_column, target_column_va
 
   #your function body below
   evidence_columns = up_list_column_names(full_table)[:-1]
-  evidence_complete = list(zip(evidence_columns, evidence_row))
-  cond_prob_list = [cond_prob(full_table, evidence_column, evidence_value, target_column, target_column_value) for evidence_column, evidence_value in evidence_complete]
+  evidence_values = evidence_row
+  evidence_complete = list(zip(evidence_columns, evidence_values))
+  cond_prob_list = [cond_prob(full_table, col, val, target_column, target_column_value) for col, val in evidence_complete]
   return up_product(cond_prob_list)
-
-def prior_prob(full_table, the_column, the_column_value):
-  assert the_column in full_table
-  assert the_column_value in up_get_column(full_table, the_column)
-
-  #your function body below
-  t_list = up_get_column(full_table, the_column)
-  p_a = sum([1 if v==the_column_value else 0 for v in t_list])/len(t_list)
-  return p_a
 
 def naive_bayes(full_table, evidence_row, target_column):
   assert target_column in full_table
@@ -54,28 +60,3 @@ def naive_bayes(full_table, evidence_row, target_column):
   neg, pos = compute_probs(neg, pos)
   #return your 2 results in a list
   return [neg, pos]
-
-def metrics(zipped_list):
-  assert isinstance(zipped_list, list)
-  assert all([isinstance(v, list) for v in zipped_list])
-  assert all([len(v)==2 for v in zipped_list])
-  assert all([isinstance(a,(int,float)) and isinstance(b,(int,float)) for a,b in zipped_list]), f'zipped_list contains a non-int or non-float'
-  assert all([float(a) in [0.0,1.0] and float(b) in [0.0,1.0] for a,b in zipped_list]), f'zipped_list contains a non-binary value'
-
-  #first compute the sum of all 4 cases. See code above
-  tn = sum([1 if pair==[0,0] else 0 for pair in zipped_list])
-  tp = sum([1 if pair==[1,1] else 0 for pair in zipped_list])
-  fp = sum([1 if pair==[1,0] else 0 for pair in zipped_list])
-  fn = sum([1 if pair==[0,1] else 0 for pair in zipped_list])
-
-  #now can compute precicision, recall, f1, accuracy. Watch for divide by 0.
-  precision = round(tp / (tp + fp), 2) if (tp + fp) > 0 else 0 
-  recall = 0 if tp + fn <= 0 else round(tp / (tp + fn), 2)
-  f1 = 0 if precision + recall <= 0 else round(2 * (precision * recall) / (precision + recall), 2)
-  accuracy = round((tp + tn) / (tp + tn + fp + fn), 2) if (tp + tn + fp + fn) != 0 else 0
-
-  #now build dictionary with the 4 measures - round values to 2 places
-  results = {'Precision': precision, 'Recall': recall, 'F1': f1, 'Accuracy': accuracy}
-
-  #finally, return the dictionary
-  return results 
