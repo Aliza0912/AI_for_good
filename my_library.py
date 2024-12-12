@@ -78,3 +78,26 @@ def metrics(zipped_list):
   }
   #finally, return the dictionary
   return result
+
+def node(inputs, weights):
+  assert isinstance(inputs,list)
+  assert isinstance(weights, list)
+  assert len(inputs)==len(weights)
+
+  zipped = up_zip_lists(inputs,weights)
+  z = sum([x*y for x,y in zipped])  #dot product
+  s = sigmoid(z)  #value between 0 and 1 - will treat as the "pos" probability
+  return s
+
+def feed_forward(net_weights, inputs):
+  # slide left to right
+  for layer in net_weights:
+    output = [node(inputs, node_weights) for node_weights in layer]
+    inputs = output  #the trick - make input the output of previous layer
+  result = output[0]
+  return result
+
+def generate_random(n):
+  random_weights = [round(uniform(-1, 1), 2) for i in range(n)]  
+  return random_weights
+
