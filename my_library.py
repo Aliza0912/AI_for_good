@@ -125,3 +125,31 @@ def try_archs(train_table, test_table, target_column_name, architectures, thresh
     display(up_metrics_table(all_mets))
 
   return arch_acc_dict
+
+def run_random_forest(train_data, test_data, target_column, n_estimators):
+    # Use parameter names consistently
+    X_train = up_drop_column(train_data, target_column)
+    y_train = up_get_column(train_data, target_column)
+
+    assert isinstance(y_train, list)
+    assert len(y_train) == len(X_train)
+
+    clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=2, random_state=0)
+    clf.fit(X_train, y_train)
+
+    X_test = up_drop_column(test_data, target_column)
+    y_test = up_get_column(test_data, target_column)
+
+    probs = clf.predict_proba(X_test)
+    pos_probs = [p[1] for p in probs]  # Extract positive probabilities
+
+    all_metrics = []
+    for t in thresholds:
+        predictions = [1 if pos > t else 0 for pos in pos_probs]
+        pred_act_list = up_zip_lists(predictions, y_test)
+        metrics_result = metrics(pred_act_list)
+        metrics_result['Threshold'] = t
+        all_metrics.append(metrics_result)
+
+    metrics_table = up_metrics_table(all_metrics)
+    return metrics_table
