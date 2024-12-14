@@ -101,3 +101,5 @@ def generate_random(n):
   random_weights = [round(uniform(-1, 1), 2) for i in range(n)]  
   return random_weights
 
+up_write_table(pima_train, 'pima_train.csv')  #then move over to github to get url
+up_write_table(pima_test, 'pima_test.csv')  #then move over to github to get url
