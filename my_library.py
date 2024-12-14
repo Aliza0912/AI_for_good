@@ -100,7 +100,3 @@ def feed_forward(net_weights, inputs):
 def generate_random(n):
   random_weights = [round(uniform(-1, 1), 2) for i in range(n)]  
   return random_weights
-
-pima_train, pima_test = up_train_test_split(wrangled_pima, 'Outcome', .4)
-up_write_table(pima_train, 'pima_train.csv')  #then move over to github to get url
-up_write_table(pima_test, 'pima_test.csv')  #then move over to github to get url
